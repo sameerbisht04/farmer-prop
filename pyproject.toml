@@ -1,0 +1,9 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "farmer-prop"
+version = "0.0.1"
+description = "Farmer Prop minimal project metadata for Vercel"
+authors = [ { name = "Maintainer" } ]
