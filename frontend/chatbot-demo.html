@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Crop Advisor - Working Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .typing-indicator {
+            display: inline-block;
+        }
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #9CA3AF;
+            margin: 0 2px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        .message-animation {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-4xl">
+            <!-- Header -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
+                <div class="p-4 border-b border-gray-200 bg-green-50">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-xl font-semibold text-gray-900">🤖 AI Crop Advisor - Working Demo</h1>
+                            <p class="text-sm text-gray-600">Ask questions about crops, pests, diseases, and farming practices</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <select id="languageSelect" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="hi">हिंदी</option>
+                                <option value="en">English</option>
+                                <option value="pa">ਪੰਜਾਬੀ</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Questions -->
+                <div class="p-4 border-b border-gray-200 bg-gray-50">
+                    <h3 class="text-sm font-medium text-gray-700 mb-2">Quick Questions:</h3>
+                    <div class="flex flex-wrap gap-2" id="quickQuestions">
+                        <!-- Quick questions will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Container -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <!-- Messages -->
+                <div id="messagesContainer" class="h-96 overflow-y-auto p-4 space-y-4">
+                    <div class="flex justify-start">
+                        <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-gray-100 text-gray-900 message-animation">
+                            <p class="text-sm">नमस्ते! मैं आपका AI कृषि सलाहकार हूं। आज आपकी क्या मदद कर सकता हूं? (Hello! I am your AI agriculture advisor. How can I help you today?)</p>
+                            <p class="text-xs mt-1 text-gray-500" id="initialTime"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Input Form -->
+                <div class="p-4 border-t border-gray-200">
+                    <div class="flex space-x-2">
+                        <input
+                            type="text"
+                            id="messageInput"
+                            placeholder="अपना सवाल यहाँ टाइप करें..."
+                            class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                        <button
+                            type="button"
+                            id="voiceButton"
+                            class="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                            title="Start voice input"
+                        >
+                            🎤
+                        </button>
+                        <button
+                            type="button"
+                            id="sendButton"
+                            class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        >
+                            Send
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Features Info -->
+                <div class="p-4 bg-blue-50 border-t border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-blue-600">🌐</span>
+                            <span class="text-blue-800">Multilingual Support</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-blue-600">🎤</span>
+                            <span class="text-blue-800">Voice Input</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-blue-600">🤖</span>
+                            <span class="text-blue-800">AI-Powered</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // AI Response Generator
+        function generateAIResponse(userMessage, language) {
+            const message = userMessage.toLowerCase();
+            
+            // Hindi responses
+            if (language === 'hi') {
+                if (message.includes('सिंचाई') || message.includes('irrigation') || message.includes('पानी')) {
+                    return 'सिंचाई के लिए सुबह या शाम का समय सबसे अच्छा है। अपनी फसल के अनुसार पानी दें - गेहूं को सप्ताह में 2-3 बार, चावल को रोजाना पानी चाहिए।';
+                }
+                if (message.includes('कीट') || message.includes('pest') || message.includes('बीमारी')) {
+                    return 'कीट नियंत्रण के लिए नीम का तेल या जैविक कीटनाशक का उपयोग करें। नियमित रूप से पत्तियों की जांच करें और संक्रमित पौधों को तुरंत हटा दें।';
+                }
+                if (message.includes('खाद') || message.includes('fertilizer') || message.includes('उर्वरक')) {
+                    return 'खाद डालने का सही समय बुवाई के 15-20 दिन बाद है। NPK अनुपात 20:20:20 का उपयोग करें। मिट्टी की जांच के बाद ही खाद डालें।';
+                }
+                if (message.includes('मौसम') || message.includes('weather') || message.includes('बारिश')) {
+                    return 'आज का मौसम अच्छा है। तापमान 28°C है। अगले 2 दिनों में बारिश की संभावना है, इसलिए अपनी फसल की सुरक्षा करें।';
+                }
+                if (message.includes('फसल') || message.includes('crop') || message.includes('बीज')) {
+                    return 'सही फसल चुनने के लिए मिट्टी की जांच कराएं। रबी सीजन में गेहूं, सरसों, चना उगा सकते हैं। खरीफ सीजन में चावल, मक्का, कपास अच्छे विकल्प हैं।';
+                }
+                return 'मैं आपकी मदद करने के लिए यहां हूं। कृपया अपनी समस्या या सवाल विस्तार से बताएं। मैं आपको सबसे अच्छी सलाह दूंगा।';
+            }
+            
+            // English responses
+            if (language === 'en') {
+                if (message.includes('irrigation') || message.includes('water') || message.includes('watering')) {
+                    return 'For irrigation, early morning or evening is the best time. Water according to your crop - wheat needs water 2-3 times a week, rice needs daily watering.';
+                }
+                if (message.includes('pest') || message.includes('disease') || message.includes('insect')) {
+                    return 'For pest control, use neem oil or organic pesticides. Regularly check leaves and remove infected plants immediately.';
+                }
+                if (message.includes('fertilizer') || message.includes('manure') || message.includes('nutrient')) {
+                    return 'The right time to apply fertilizer is 15-20 days after sowing. Use NPK ratio 20:20:20. Apply fertilizer only after soil testing.';
+                }
+                if (message.includes('weather') || message.includes('rain') || message.includes('temperature')) {
+                    return 'Today\'s weather is good. Temperature is 28°C. There is a chance of rain in the next 2 days, so protect your crops.';
+                }
+                if (message.includes('crop') || message.includes('seed') || message.includes('planting')) {
+                    return 'For choosing the right crop, get your soil tested. In Rabi season, you can grow wheat, mustard, gram. In Kharif season, rice, maize, cotton are good options.';
+                }
+                return 'I am here to help you. Please describe your problem or question in detail. I will give you the best advice.';
+            }
+            
+            // Punjabi responses
+            if (language === 'pa') {
+                if (message.includes('ਸਿੰਚਾਈ') || message.includes('ਪਾਣੀ')) {
+                    return 'ਸਿੰਚਾਈ ਲਈ ਸਵੇਰ ਜਾਂ ਸ਼ਾਮ ਦਾ ਸਮਾਂ ਸਭ ਤੋਂ ਵਧੀਆ ਹੈ। ਆਪਣੀ ਫਸਲ ਦੇ ਅਨੁਸਾਰ ਪਾਣੀ ਦਿਓ - ਕਣਕ ਨੂੰ ਹਫ਼ਤੇ ਵਿੱਚ 2-3 ਵਾਰ, ਚੌਲਾਂ ਨੂੰ ਰੋਜ਼ਾਨਾ ਪਾਣੀ ਚਾਹੀਦਾ ਹੈ।';
+                }
+                if (message.includes('ਕੀਟ') || message.includes('ਰੋਗ')) {
+                    return 'ਕੀਟ ਨਿਯੰਤਰਣ ਲਈ ਨੀਮ ਦਾ ਤੇਲ ਜਾਂ ਜੈਵਿਕ ਕੀਟਨਾਸ਼ਕ ਦਾ ਉਪਯੋਗ ਕਰੋ। ਨਿਯਮਿਤ ਤੌਰ \'ਤੇ ਪੱਤਿਆਂ ਦੀ ਜਾਂਚ ਕਰੋ ਅਤੇ ਸੰਕਰਮਿਤ ਪੌਦਿਆਂ ਨੂੰ ਤੁਰੰਤ ਹਟਾ ਦਿਓ।';
+                }
+                return 'ਮੈਂ ਤੁਹਾਡੀ ਮਦਦ ਕਰਨ ਲਈ ਇੱਥੇ ਹਾਂ। ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੀ ਸਮਸਿਆ ਜਾਂ ਸਵਾਲ ਵਿਸਤਾਰ ਨਾਲ ਦੱਸੋ। ਮੈਂ ਤੁਹਾਨੂੰ ਸਭ ਤੋਂ ਵਧੀਆ ਸਲਾਹ ਦਵਾਂਗਾ।';
+            }
+            
+            return 'I am here to help you. Please describe your problem or question in detail.';
+        }
+
+        // Quick questions data
+        const quickQuestions = {
+            hi: [
+                'सिंचाई कब करें?',
+                'कीट नियंत्रण कैसे करें?',
+                'खाद कब डालें?',
+                'मौसम कैसा है?'
+            ],
+            en: [
+                'When to irrigate?',
+                'How to control pests?',
+                'When to apply fertilizer?',
+                'What is the weather?'
+            ],
+            pa: [
+                'ਸਿੰਚਾਈ ਕਦੋਂ ਕਰੀਏ?',
+                'ਕੀਟ ਨਿਯੰਤਰਣ ਕਿਵੇਂ ਕਰੀਏ?',
+                'ਖਾਦ ਕਦੋਂ ਪਾਈਏ?',
+                'ਮੌਸਮ ਕਿਵੇਂ ਹੈ?'
+            ]
+        };
+
+        // Placeholders for different languages
+        const placeholders = {
+            hi: 'अपना सवाल यहाँ टाइप करें...',
+            en: 'Type your question here...',
+            pa: 'ਆਪਣਾ ਸਵਾਲ ਇੱਥੇ ਟਾਈਪ ਕਰੋ...'
+        };
+
+        let messageId = 1;
+        let isListening = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const voiceButton = document.getElementById('voiceButton');
+            const languageSelect = document.getElementById('languageSelect');
+            const quickQuestionsContainer = document.getElementById('quickQuestions');
+            const initialTime = document.getElementById('initialTime');
+
+            // Set initial time
+            initialTime.textContent = new Date().toLocaleTimeString();
+
+            // Update quick questions and placeholder based on language
+            function updateLanguage() {
+                const selectedLang = languageSelect.value;
+                messageInput.placeholder = placeholders[selectedLang];
+                
+                quickQuestionsContainer.innerHTML = '';
+                quickQuestions[selectedLang].forEach(question => {
+                    const button = document.createElement('button');
+                    button.textContent = question;
+                    button.className = 'px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-green-50 hover:border-green-300 transition-colors';
+                    button.onclick = () => {
+                        messageInput.value = question;
+                        sendMessage();
+                    };
+                    quickQuestionsContainer.appendChild(button);
+                });
+            }
+
+            // Add message to chat
+            function addMessage(text, isUser) {
+                messageId++;
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'} message-animation`;
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = `max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    isUser ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-900'
+                }`;
+                
+                const messageText = document.createElement('p');
+                messageText.className = 'text-sm';
+                messageText.textContent = text;
+                
+                const messageTime = document.createElement('p');
+                messageTime.className = `text-xs mt-1 ${isUser ? 'text-green-100' : 'text-gray-500'}`;
+                messageTime.textContent = new Date().toLocaleTimeString();
+                
+                messageContent.appendChild(messageText);
+                messageContent.appendChild(messageTime);
+                messageDiv.appendChild(messageContent);
+                messagesContainer.appendChild(messageDiv);
+                
+                // Scroll to bottom
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            // Show typing indicator
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'flex justify-start';
+                typingDiv.id = 'typingIndicator';
+                
+                const typingContent = document.createElement('div');
+                typingContent.className = 'bg-gray-100 text-gray-900 px-4 py-2 rounded-lg';
+                
+                const typingSpans = document.createElement('div');
+                typingSpans.className = 'typing-indicator';
+                typingSpans.innerHTML = '<span></span><span></span><span></span>';
+                
+                typingContent.appendChild(typingSpans);
+                typingDiv.appendChild(typingContent);
+                messagesContainer.appendChild(typingDiv);
+                
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            // Remove typing indicator
+            function removeTypingIndicator() {
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+
+            // Send message
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (message) {
+                    addMessage(message, true);
+                    messageInput.value = '';
+                    
+                    // Show typing indicator
+                    showTypingIndicator();
+                    
+                    // Generate AI response after delay
+                    setTimeout(() => {
+                        removeTypingIndicator();
+                        const aiResponse = generateAIResponse(message, languageSelect.value);
+                        addMessage(aiResponse, false);
+                    }, 1500);
+                }
+            }
+
+            // Voice input simulation
+            function handleVoiceInput() {
+                if (!isListening) {
+                    isListening = true;
+                    voiceButton.innerHTML = '🔴';
+                    voiceButton.className = 'px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors';
+                    voiceButton.title = 'Stop listening';
+                    
+                    // Simulate voice recognition
+                    setTimeout(() => {
+                        const voiceMessage = languageSelect.value === 'hi' ? 
+                            'मुझे सिंचाई के बारे में जानकारी चाहिए' :
+                            languageSelect.value === 'pa' ?
+                            'ਮੈਨੂੰ ਸਿੰਚਾਈ ਬਾਰੇ ਜਾਣਕਾਰੀ ਚਾਹੀਦੀ ਹੈ' :
+                            'I need information about irrigation';
+                        
+                        messageInput.value = voiceMessage;
+                        isListening = false;
+                        voiceButton.innerHTML = '🎤';
+                        voiceButton.className = 'px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors';
+                        voiceButton.title = 'Start voice input';
+                        
+                        // Auto send the voice message
+                        sendMessage();
+                    }, 3000);
+                } else {
+                    isListening = false;
+                    voiceButton.innerHTML = '🎤';
+                    voiceButton.className = 'px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors';
+                    voiceButton.title = 'Start voice input';
+                }
+            }
+
+            // Event listeners
+            sendButton.addEventListener('click', sendMessage);
+            voiceButton.addEventListener('click', handleVoiceInput);
+            languageSelect.addEventListener('change', updateLanguage);
+            
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            // Initialize language
+            updateLanguage();
+        });
+    </script>
+</body>
+</html>
