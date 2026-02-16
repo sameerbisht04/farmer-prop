@@ -7,3 +7,4 @@ name = "farmer-prop"
 version = "0.0.1"
 description = "Farmer Prop minimal project metadata for Vercel"
 authors = [ { name = "Maintainer" } ]
+requires-python = ">=3.8,<3.12"
